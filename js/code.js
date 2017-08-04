@@ -5,7 +5,7 @@ var address = "0xb3764761e297d6f121e79c32a65829cd1ddb4d32";
 $(function(){
 
   function getTransaction(address, callback){
-    var transactions = $.ajax({
+    $.ajax({
       url: 'http://api.etherscan.io/api?module=account&action=txlist&address=' + address + '&startblock=0&endblock=99999999&sort=asc', // transactions
       type: 'GET',
       dataType: 'json',
@@ -13,45 +13,39 @@ $(function(){
     });
   }
 
-  var transactions = getTransaction(address);
-
   var ether =  1000000000000000000;
   var depth =  6;
-
+  var maxOut = 10;
   var nodes = [{data: { id: address, name: address}}];
   var edges = [];
-
   var accounts = [];
-
-  //var exchanges = [];
   var exchanges = ['0x57b174839cbd0a503b9dfcb655e4f4b1b47b3296', '0x70faa28a6b8d6829a4b1e649d26ec9a2a39ba413', '0x96fc4553a00c117c5b0bed950dd625d1c16dc894'];
 
 
-  function walkerOne(address, callback){
+  function walkOne(address, callback){
     getTransaction(address, function(result){
-      var queueAddresses = [];
+      var newQueue = [];
       transactions = result['result'];
       var out = 0;
-      var threshold = 10;
       for(j=0; j < transactions.length; j++){
         if(transactions[j].from === address){
           if(transactions[j].value > ether){
             out++;
-            if(out > threshold) break;
+            if(out > maxOut) break;
           }
         }
       }
-      if(out > threshold){
+      if(out > maxOut){
         exchanges.push(transactions[j].from);
         edges.push({data: {id: address, weight: 0, label: "exchange", source: transactions[j].from, target: transactions[j].from}});
-        callback(queueAddresses);
+        callback(newQueue);
       } else {
         for(j=0; j < transactions.length; j++){
           if(transactions[j].from === address){
-            if (queueAddresses.indexOf(transactions[j].to) < 0) {
+            if (newQueue.indexOf(transactions[j].to) < 0) {
               if(transactions[j].value > ether){
                 if(exchanges.indexOf(transactions[j].to) < 0){
-                  queueAddresses.push(transactions[j].to);
+                  newQueue.push(transactions[j].to);
                   nodes.push({data: { id: transactions[j].to, name: transactions[j].to}});
                 }else{
                   nodes.push({data: { id: transactions[j].to, name: transactions[j].to}});
@@ -72,15 +66,15 @@ $(function(){
             }
           }
         }
-        callback(queueAddresses);
+        callback(newQueue);
       }
     });
   }
 
 
-  function walkerQueue(queue, depth, callback){
+  function walkQueue(queue, depth, callback){
     for(i = 0; i < queue.length; i++){
-      walkerOne(queue[i], function(newQueue){
+      walkOne(queue[i], function(newQueue){
         if(depth > 0 && newQueue.length > 0) {
           callback(newQueue, depth, callback);
         }
@@ -88,14 +82,14 @@ $(function(){
     }
   }
 
-  function walkerAll(address, depth, initCy){
-    walkerOne(address, function(queue){
+  function walkAll(address, depth, initCy){
+    walkOne(address, function(queue){
       depth--;
       if(depth > 0){
-        walkerQueue(queue, depth, function(newQueue, depth, callback){
+        walkQueue(queue, depth, function(newQueue, depth, callback){
           depth--;
           if(depth > 0 && newQueue.length > 0){
-            walkerQueue(newQueue, depth, callback);
+            walkQueue(newQueue, depth, callback);
           }
             initCy();
             console.log(accounts);
@@ -107,7 +101,7 @@ $(function(){
 
   }
 
-  walkerAll(address, depth, initCy);
+  walkAll(address, depth, initCy);
 
   // when both graph export json and style loaded, init cy
 
@@ -134,7 +128,7 @@ $(function(){
             'target-arrow-shape': 'triangle',
             'target-arrow-color': '#ccc',
             'line-color': '#ccc',
-            'width': 3
+            'width': 2
           })
           .selector(':selected')
           .css({
@@ -178,18 +172,16 @@ $(function(){
 
 
 
-    //var cy = window.cy = cytoscape({
-    //  container: document.getElementById('cy'),
-    //  layout: { name: 'preset' },
-    //  style: styleJson,
-    //  elements: elements,
-    //  motionBlur: true,
-    //  selectionType: 'single',
-    //  boxSelectionEnabled: false
-    //});
+    var cy = window.cy = cytoscape({
+      container: document.getElementById('cy'),
+      layout: { name: 'preset' },
+      style: styleJson,
+      elements: elements,
+      motionBlur: true,
+      selectionType: 'single',
+      boxSelectionEnabled: false
+    });
 
-    //mendData();
-    //bindRouters();
   }
 
 });
