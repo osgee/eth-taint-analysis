@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ether Tracker API</title>
+</head>
+<body>
+<script>
+    function confirm() {
+        var address = document.getElementById("address").value;
+        var depth = document.getElementById("depth").value;
+        if(address==='' || depth === ''){}else{
+            window.location.replace('http://localhost:3000/track/' + address + '/' + depth);
+        }
+    }
+</script>
+address:&nbsp<input type="text" id="address" name="address">
+depth:&nbsp<input type="text" id="depth" name="depth">
+<input type="button" name="confirm" value="confirm" onclick="confirm()">
+
+</body>
+</html>

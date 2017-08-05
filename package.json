@@ -1,0 +1,33 @@
+{
+  "name": "eth-tracker",
+  "version": "1.0.0",
+  "description": "RESTful Api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osgee/eth_tracker.git"
+  },
+  "keywords": [
+    "RESTful",
+    "API"
+  ],
+  "author": "osgee",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/osgee/eth_tracker/issues"
+  },
+  "homepage": "https://github.com/osgee",
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  },
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "http": "0.0.0",
+    "request": "^2.81.0"
+  }
+}
