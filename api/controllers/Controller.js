@@ -115,20 +115,14 @@ function walkQueue(queue, depth, callback){
 
 function walkAll(address, depth, _callback){
   nodes.push({data: { id: address, name: address}});
-  walkOne(address, function(queue){
-    depth--;
-    if(depth > 0){
-      walkQueue(queue, depth, function(newQueue, depth, callback){
+  var queue = [address];
+  walkQueue(queue, depth, function(newQueue, depth, callback){
         depth--;
         if(depth > 0 && newQueue.length > 0){
           walkQueue(newQueue, depth, callback);
         }
         _callback();
       });
-    }
-    _callback();
-  });
-
 }
 
 exports.track = function(req, res) {
