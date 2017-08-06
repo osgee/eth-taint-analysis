@@ -14,9 +14,9 @@ $(function(){
   }
 
   var ether =  1000000000000000000;
-  var depth =  6;
-  var maxOut = 10;
-  var nodes = [{data: { id: address, name: address}}];
+  var depth =  3;
+  var maxOut = 50;
+  var nodes = [];
   var edges = [];
   var accounts = [];
   var exchanges = ['0x57b174839cbd0a503b9dfcb655e4f4b1b47b3296', '0x70faa28a6b8d6829a4b1e649d26ec9a2a39ba413', '0x96fc4553a00c117c5b0bed950dd625d1c16dc894'];
@@ -27,7 +27,10 @@ $(function(){
       var newQueue = [];
       transactions = result['result'];
       var out = 0;
-      for(j=0; j < transactions.length; j++){
+      for(var j=0; j < transactions.length; j++){
+        if(transactions[j].isError == 1){
+          continue;
+        }
         if(transactions[j].from === address){
           if(transactions[j].value > ether){
             out++;
@@ -40,8 +43,11 @@ $(function(){
         edges.push({data: {id: address, weight: 0, label: "exchange", source: transactions[j].from, target: transactions[j].from}});
         callback(newQueue);
       } else {
-        for(j=0; j < transactions.length; j++){
+        for(var j=0; j < transactions.length; j++){
           if(transactions[j].from === address){
+            if(transactions[j].isError == 1){
+              continue;
+            }
             if (newQueue.indexOf(transactions[j].to) < 0) {
               if(transactions[j].value > ether){
                 if(exchanges.indexOf(transactions[j].to) < 0){
@@ -73,7 +79,7 @@ $(function(){
 
 
   function walkQueue(queue, depth, callback){
-    for(i = 0; i < queue.length; i++){
+    for(var i = 0; i < queue.length; i++){
       walkOne(queue[i], function(newQueue){
         if(depth > 0 && newQueue.length > 0) {
           callback(newQueue, depth, callback);
@@ -82,21 +88,17 @@ $(function(){
     }
   }
 
-  function walkAll(address, depth, initCy){
-    walkOne(address, function(queue){
+  function walkAll(address, depth, _callback){
+    address = address.toLowerCase();
+    nodes.push({data: { id: address, name: address}});
+    var queue = [address];
+    walkQueue(queue, depth, function(newQueue, depth, callback){
       depth--;
-      if(depth > 0){
-        walkQueue(queue, depth, function(newQueue, depth, callback){
-          depth--;
-          if(depth > 0 && newQueue.length > 0){
-            walkQueue(newQueue, depth, callback);
-          }
-            initCy();
-            console.log(accounts);
-        });
+      if(depth > 0 && newQueue.length > 0){
+        walkQueue(newQueue, depth, callback);
       }
-      initCy();
-      console.log(accounts);
+        _callback();
+        console.log(accounts);
     });
 
   }
@@ -167,10 +169,6 @@ $(function(){
         cy.elements().removeClass('faded');
       }
     });
-
-
-
-
 
     var cy = window.cy = cytoscape({
       container: document.getElementById('cy'),
