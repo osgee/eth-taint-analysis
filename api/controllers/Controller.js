@@ -1,6 +1,6 @@
 'use strict';
 
-var request = require('request');
+
 
 var edgeIn = [];
 var nodes = [];
@@ -14,14 +14,14 @@ var exchangeData = [];
 var walkers = 0;
 var lastRenew = 0;
 
-function getTransaction(address, callback){
+async function getTransaction(address, callback){
   var options = {
     port: 80,
     uri: 'http://api.etherscan.io/api?module=account&action=txlist&address=' + address + '&startblock=0&endblock=99999999&sort=asc',
     method: 'GET',
     json:true
   };
-
+  var request = require('request');
   request(options, function(error, response, body){
     if(error) console.log(error);
     else {
@@ -48,7 +48,7 @@ function walkOne(address, callback){
     }
     if(out > maxOut){
       exchanges.push(transactions[j].from);
-      if(edgeIn.indexOf(address) < 0){
+      if(edgeIn.indexOf(address) >= 0){} else {
         edges.push({data: {id: address, weight: 0, label: "exchange", source: transactions[j].from, target: transactions[j].from}});
         edgeIn.push(address);
       }
@@ -61,33 +61,40 @@ function walkOne(address, callback){
             if(transactions[j].value > ether){
               if(exchanges.indexOf(transactions[j].to) < 0){
                 newQueue.push(transactions[j].to);
-              }else{
-                if(edgeIn.indexOf(transactions[j].hash) < 0){
-                  edges.push({data: {id: transactions[j].hash, weight: transactions[j].value/ether, label: 'exchange: '  + transactions[j].value/ether, source: transactions[j].from, target: transactions[j].to}});
-                  edgeIn.push(transactions[j].hash);
-                }
               }
+
               if(accounts.indexOf(transactions[j].to) < 0){
                 nodes.push({data: { id: transactions[j].to, name: transactions[j].to}});
                 accounts.push(transactions[j].to);
                 accountData.push({data: {address: transactions[j].to, value: transactions[j].value/ether}});
+              }else{
+                for(var i = 0; i < accountData.length; i++){
+                  if(accountData[i].data.address === transactions[j].to){
+                    accountData[i].data.value += transactions[j].value/ether;
+                    break;
+                  }
+                }
               }
             }
           }
 
           if(transactions[j].value > ether){
             if(exchanges.indexOf(transactions[j].to) >= 0){
-              if(edgeIn.indexOf(transactions[j].hash) < 0){
                 edges.push({data: {id: transactions[j].hash, weight: transactions[j].value/ether, label: 'exchange: '  + transactions[j].value/ether, source: transactions[j].from, target: transactions[j].to}});
                 edgeIn.push(transactions[j].hash);
-              }
               exchangeData.push({data: {address: transactions[j].to, value: transactions[j].value/ether}});
             }else{
-              if(edgeIn.indexOf(transactions[j].hash) < 0){
                 edges.push({data: {id: transactions[j].hash, weight: transactions[j].value/ether, label: transactions[j].value/ether, source: transactions[j].from, target: transactions[j].to}});
                 edgeIn.push(transactions[j].hash);
+            }
+
+            for(var i = 0; i < accountData.length; i++){
+              if(accountData[i].data.address === transactions[j].from){
+                accountData[i].data.value -= transactions[j].value/ether;
+                break;
               }
             }
+
           }
         }
       }
@@ -125,6 +132,7 @@ function walkAll(address, depth, _callback){
 }
 
 exports.track = function(req, res) {
+  var sent = 0;
   walkers = 0;
   nodes = [];
   edges = [];
@@ -134,7 +142,8 @@ exports.track = function(req, res) {
   var address = req.params.address.toLowerCase();
   var depth = req.params.depth;
   walkAll(address, depth, function() {
-    if(walkers <= 0){
+    if(walkers <= 0 && sent == 0){
+      sent = 1;
       console.log(accounts);
       var data = {elements: {nodes: nodes, edges: edges}, accounts: accountData, exchanges: exchangeData};
       res.json(data);
