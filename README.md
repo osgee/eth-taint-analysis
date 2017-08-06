@@ -27,6 +27,4 @@ MIT
 
 ### Support
 
-Support for this project:
-
 ETH: 0x133f7656e191345c68741ac71a573cd91f9d6330
