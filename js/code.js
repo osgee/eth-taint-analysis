@@ -30,12 +30,42 @@ $(function(){
     });
   }
 
+  function getBalance(address){
+    $.ajax({
+      url: 'https://api.etherscan.io/api?module=account&action=balance&address=' + address + '&tag=latest', // balance
+      type: 'GET',
+      dataType: 'json',
+      success: function (result) {
+        // nodes.push({data: { id: address, name: address + ' (' + result['result']/ether + ')'}});
+        console.log(address + ' (' + result['result']/ether + ')');
+      }
+    });
+  }
+
+  function getBalanceWithEdge(target){
+    $.ajax({
+      url: 'https://api.etherscan.io/api?module=account&action=balance&address=' + target + '&tag=latest', // balance
+      type: 'GET',
+      dataType: 'json',
+      success: function (result) {
+        // nodes.push({data: { id: target, name: target + ' (' + result['result']/ether + ')'}});
+        //
+        if(balances.indexOf('balance' + target) < 0){
+          balances.push('balance' + target);
+          edges.push({data: {id: 'balance' + target, weight: result['result']/ether, label: (result['result']/ether).toFixed(0), source: target, target: target}});
+
+          console.log(target + ' (' + result['result']/ether + ')');
+        }
+      }
+    });
+  }
+
   var ether =  1000000000000000000;
   var nodes = [];
   var edges = [];
   var accounts = [];
   var exchanges = ['0x57b174839cbd0a503b9dfcb655e4f4b1b47b3296', '0x70faa28a6b8d6829a4b1e649d26ec9a2a39ba413', '0x96fc4553a00c117c5b0bed950dd625d1c16dc894'];
-
+  var balances = [];
 
   function walkOne(address, callback){
     getTransaction(address, function(result){
@@ -56,6 +86,7 @@ $(function(){
       if(out > maxOut){
         exchanges.push(transactions[j].from);
         edges.push({data: {id: address, weight: 0, label: "exchange", source: transactions[j].from, target: transactions[j].from}});
+        getBalanceWithEdge(transactions[j].from);
         callback(newQueue);
       } else {
         for(var j=0; j < transactions.length; j++){
@@ -68,9 +99,11 @@ $(function(){
                 if(exchanges.indexOf(transactions[j].to) < 0){
                   newQueue.push(transactions[j].to);
                   nodes.push({data: { id: transactions[j].to, name: transactions[j].to}});
+                  getBalanceWithEdge(transactions[j].to);
                 }else{
                   nodes.push({data: { id: transactions[j].to, name: transactions[j].to}});
                   edges.push({data: {id: transactions[j].hash, weight: transactions[j].value/ether, label: 'exchange: '  + transactions[j].value/ether, source: transactions[j].from, target: transactions[j].to}});
+                  getBalanceWithEdge(transactions[j].to);
                 }
                 if(accounts.indexOf(transactions[j].to) < 0){
                   accounts.push(transactions[j].to);
@@ -81,8 +114,10 @@ $(function(){
             if(transactions[j].value > ether){
               if(exchanges.indexOf(transactions[j].to) >= 0){
                 edges.push({data: {id: transactions[j].hash, weight: transactions[j].value/ether, label: 'exchange: '  + transactions[j].value/ether, source: transactions[j].from, target: transactions[j].to}});
+                getBalanceWithEdge(transactions[j].to);
               }else{
                 edges.push({data: {id: transactions[j].hash, weight: transactions[j].value/ether, label: transactions[j].value/ether, source: transactions[j].from, target: transactions[j].to}});
+                getBalanceWithEdge(transactions[j].to);
               }
             }
           }
@@ -106,6 +141,7 @@ $(function(){
   function walkAll(address, depth, _callback){
     address = address.toLowerCase();
     nodes.push({data: { id: address, name: address}});
+    getBalanceWithEdge(address);
     var queue = [address];
     walkQueue(queue, depth, function(newQueue, depth, callback){
       depth--;
