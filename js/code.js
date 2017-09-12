@@ -1,6 +1,23 @@
 // get exported json from cytoscape desktop via ajax
 
-var address = "0xb3764761e297d6f121e79c32a65829cd1ddb4d32";
+
+let a = location.search&&location.search.substr(1).replace(/\+/gi," ").split("&");
+for (let i in a) {
+    let s = a[i].split("=");
+    a[i]  = a[unescape(s[0])] = unescape(s[1]);
+}
+let address = a[0];
+let depth = a[1];
+let maxOut = a[2];
+
+// var address = "0xb3764761e297d6f121e79c32a65829cd1ddb4d32";
+
+
+let validAddress = address.length === 42 && address.substring(0,2) === "0x";
+if (!validAddress) {
+    $("#error").html('Invalid ETH address!');
+    $("#result").html.clear();
+}
 
 $(function(){
 
@@ -14,8 +31,6 @@ $(function(){
   }
 
   var ether =  1000000000000000000;
-  var depth =  3;
-  var maxOut = 50;
   var nodes = [];
   var edges = [];
   var accounts = [];

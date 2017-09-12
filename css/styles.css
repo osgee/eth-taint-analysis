@@ -1,0 +1,22 @@
+.input{
+    display: inline-block;
+    height:auto;
+    width: 350px;
+}
+.addressTo {
+    font-weight: bold;
+    font-size: 100%;
+}
+.nav-wrapper {
+    padding-left: 20px;
+}
+
+.info {
+    margin-top: 50px;
+    font-style: italic;
+    font-size: 70%;
+}
+#error {
+    font-weight: bold;
+    color: red;
+}
