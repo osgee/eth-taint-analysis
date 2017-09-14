@@ -33,7 +33,6 @@ Analyse the ether flow on blockchain.
 ### Author
 * [Tao Feng](https://github.com/osgee)
 * [Hristo Hristov](https://github.com/hristochr)
-* [Aeternity](https://github.com/aeternity)
 
 ### License
 MIT
