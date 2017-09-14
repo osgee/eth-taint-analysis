@@ -31,9 +31,9 @@ Analyse the ether flow on blockchain.
 [click here](http://osgee.com/eth-tracker/index.html)
 
 ### Author
-[Tao Feng](https://github.com/osgee)
-[Hristo Hristov](https://github.com/hristochr)
-[Aeternity](https://github.com/aeternity)
+* [Tao Feng](https://github.com/osgee)
+* [Hristo Hristov](https://github.com/hristochr)
+* [Aeternity](https://github.com/aeternity)
 
 ### License
 MIT
